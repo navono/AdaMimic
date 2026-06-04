@@ -119,7 +119,7 @@ algo:
     experiment_name: ${env.asset.name}_adamimic_stage1
     run_name: ${run_name}
     wandb_project: "adamimic"
-    logger: 'wandb'
+    logger: 'tensorboard'
 
     # load and resume
     resume: false

@@ -9,9 +9,9 @@ dependencies:
   - seaborn
   - GitPython
   - pydelatin
-  - pyfqmr
   - hydra-core
   - pip
   - wandb
   - pip:
     - git+https://github.com/KellerJordan/Muon
+    - pyfqmr
