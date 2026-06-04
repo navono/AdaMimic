@@ -43,3 +43,7 @@ python legged_gym/legged_gym/scripts/play.py +dataset=g1_dof27/<task> +algorithm
 ```
 
 也可直接使用 Makefile（见 `make help`）。
+
+## 训练输出目录
+
+Checkpoint 和日志保存在项目目录下的 `exp/<robot>/<task>/<stage>/<timestamp>/`。

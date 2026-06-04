@@ -4,13 +4,14 @@ LD_PATH := LD_LIBRARY_PATH=$$CONDA_PREFIX/lib:$$LD_LIBRARY_PATH
 PYTHON := python legged_gym/legged_gym/scripts
 ROBOT := g1_dof27
 TASKS := badminton_hit tennis_hit high_jump far_jump triple_jump jump_step_up jump_step_down
-LOG_DIR := ../exp
+LOG_DIR := exp
 
 TASK := badminton_hit
 # Default: show available targets
 #
 # Usage:
 #   make stage1 TASK=badminton_hit
+#   make stage1 TASK=badminton_hit RESUME=exp/g1_dof27/badminton_hit/adamimic_stage1/<timestamp>/model_<iter>.pt
 #   make stage2 TASK=badminton_hit CHECKPOINT=exp/g1_dof27/badminton_hit/adamimic_stage1/<timestamp>/model_40000.pt
 #   make play TASK=badminton_hit RESUME=exp/g1_dof27/badminton_hit/adamimic_stage2/<timestamp>/model_10000.pt
 #   make logs TASK=badminton_hit
@@ -20,6 +21,7 @@ help:
 	@echo ""
 	@echo "Targets:"
 	@echo "  stage1        Train stage 1"
+	@echo "  stage1 RESUME=   Resume stage 1 from checkpoint"
 	@echo "  stage2        Train stage 2 (requires CHECKPOINT=path/to/stage1_ckpt)"
 	@echo "  play          Play a trained policy (requires RESUME=path/to/stage2_ckpt)"
 	@echo "  logs          Tail training logs"
@@ -29,6 +31,7 @@ help:
 	@echo ""
 	@echo "Examples:"
 	@echo "  make stage1 TASK=badminton_hit"
+	@echo "  make stage1 TASK=badminton_hit RESUME=exp/g1_dof27/badminton_hit/adamimic_stage1/.../model_500.pt"
 	@echo "  make stage2 TASK=badminton_hit CHECKPOINT=exp/g1_dof27/badminton_hit/.../model_40000.pt"
 	@echo "  make play TASK=badminton_hit RESUME=exp/g1_dof27/badminton_hit/.../model_10000.pt"
 	@echo "  make logs TASK=badminton_hit"
@@ -36,10 +39,12 @@ help:
 
 # Train stage 1
 # Usage: make stage1 TASK=badminton_hit
+# Resume: make stage1 TASK=badminton_hit RESUME=exp/g1_dof27/badminton_hit/adamimic_stage1/<timestamp>/model_<iter>.pt
 stage1:
 	@echo ">>> Training stage 1: $(TASK)"
 	$(CONDA_ACTIVATE) && $(LD_PATH) \
-	$(PYTHON)/train.py +dataset=$(ROBOT)/$(TASK) +algorithm=adamimic/stage1 +robot=$(ROBOT)
+	$(PYTHON)/train.py +dataset=$(ROBOT)/$(TASK) +algorithm=adamimic/stage1 +robot=$(ROBOT) \
+	$(if $(RESUME),resume_path=$(RESUME) algo.runner.resume=true,)
 
 # Train stage 2 (depends on stage1 checkpoint)
 # Usage: make stage2 TASK=badminton_hit CHECKPOINT=exp/g1_dof27/badminton_hit/adamimic_stage1/<timestamp>/model_40000.pt

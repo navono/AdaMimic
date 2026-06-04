@@ -147,4 +147,4 @@ checkpoint_path: null
 
 hydra:
   run:
-    dir: ../exp/${robot.name}/${task_id}/${algorithm.algo_name}/${now:%Y%m%d_%H%M%S}_${robot.name}_${task_id}_${algorithm.algo_name}_${run_name}
+    dir: exp/${robot.name}/${task_id}/${algorithm.algo_name}/${now:%Y%m%d_%H%M%S}_${robot.name}_${task_id}_${algorithm.algo_name}_${run_name}
