@@ -51,3 +51,33 @@ Stage 2 必须加载 Stage 1 的 checkpoint 作为初始化权重（`checkpoint_
 - `model_<iter>.pt` — PyTorch checkpoint
 - `model_jit_<iter>.pt` — JIT 编译版本（用于部署）
 - `events.out.tfevents.*` — Tensorboard 日志
+
+## Tensorboard 指标说明
+
+启动：`make tensorboard TASK=badminton_hit`，浏览器访问 `http://<机器IP>:6006`。
+
+顶部导航栏切换 tab，主要看 **SCALARS**。左侧面板支持搜索/正则过滤指标（如 `rew_.*`）、勾选显示、调整曲线平滑度。
+
+### 关键指标
+
+| 指标 | 含义 | 参考标准 |
+|------|------|----------|
+| `Train/mean_reward` | 平均总奖励 | 越高越好 |
+| `Train/mean_episode_length` | 平均 episode 长度 | 越高越好（说明机器人存活更久） |
+| `Train/mean_entropy` | 策略熵 | 初期较高，后期逐渐降低为宜 |
+| `Loss/loss` | 总损失 | 越低越好 |
+| `Loss/value_loss` | 价值函数损失 | 越低越好 |
+| `Loss/action_loss` | 策略损失 | 越低越好 |
+| `Loss/surrogate_loss` | PPO surrogate 损失 | 越低越好 |
+
+### 运动跟踪指标
+
+| 指标 | 含义 | 参考标准 |
+|------|------|----------|
+| `rew_sparse_tracking_trunk_height` | 躯干高度跟踪奖励 | 越高越好 |
+| `rew_sparse_tracking_*` | 各部位的稀疏跟踪奖励 | 越高越好 |
+| `joint_pos_diff_norm` | 关节位置偏差 | 越低越好 |
+| `upper_body_diff_norm` | 上半身偏差 | 越低越好 |
+| `lower_body_diff_norm` | 下半身偏差 | 越低越好 |
+
+训练正常时：`mean_reward` 逐步上升，`joint_pos_diff_norm` 逐步下降，`mean_episode_length` 逐步增长。

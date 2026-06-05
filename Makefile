@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 CONDA_ENV := adamimic
 CONDA_ACTIVATE := source $$(conda info --base)/etc/profile.d/conda.sh && conda activate $(CONDA_ENV)
 LD_PATH := LD_LIBRARY_PATH=$$CONDA_PREFIX/lib:$$LD_LIBRARY_PATH
@@ -7,6 +8,7 @@ TASKS := badminton_hit tennis_hit high_jump far_jump triple_jump jump_step_up ju
 LOG_DIR := exp
 
 TASK := badminton_hit
+STAGE := stage1
 # Default: show available targets
 #
 # Usage:
@@ -15,6 +17,7 @@ TASK := badminton_hit
 #   make stage2 TASK=badminton_hit CHECKPOINT=exp/g1_dof27/badminton_hit/adamimic_stage1/<timestamp>/model_40000.pt
 #   make play TASK=badminton_hit RESUME=exp/g1_dof27/badminton_hit/adamimic_stage2/<timestamp>/model_10000.pt
 #   make logs TASK=badminton_hit
+#   make status TASK=badminton_hit STAGE=stage1
 #   make tensorboard TASK=badminton_hit
 help:
 	@echo "Usage: make <target> TASK=<task_name>"
@@ -25,6 +28,7 @@ help:
 	@echo "  stage2        Train stage 2 (requires CHECKPOINT=path/to/stage1_ckpt)"
 	@echo "  play          Play a trained policy (requires RESUME=path/to/stage2_ckpt)"
 	@echo "  logs          Tail training logs"
+	@echo "  status        Show training status (STAGE=stage1 or stage2)"
 	@echo "  tensorboard   Launch tensorboard"
 	@echo ""
 	@echo "Available tasks: $(TASKS)"
@@ -35,6 +39,7 @@ help:
 	@echo "  make stage2 TASK=badminton_hit CHECKPOINT=exp/g1_dof27/badminton_hit/.../model_40000.pt"
 	@echo "  make play TASK=badminton_hit RESUME=exp/g1_dof27/badminton_hit/.../model_10000.pt"
 	@echo "  make logs TASK=badminton_hit"
+	@echo "  make status TASK=badminton_hit STAGE=stage1"
 	@echo "  make tensorboard TASK=badminton_hit"
 
 # Train stage 1
@@ -76,4 +81,9 @@ logs:
 	else \
 		echo "No logs found for $(TASK)"; exit 1; fi
 
-.PHONY: help stage1 stage2 play logs tensorboard
+# Show training status with reasonable range benchmarks
+# Usage: make status TASK=badminton_hit STAGE=stage1
+status:
+	$(CONDA_ACTIVATE) && python scripts/check_training.py /home/ubuntu22/sourcecode/exp/$(ROBOT)/$(TASK)/adamimic_$(STAGE) $(STAGE)
+
+.PHONY: help stage1 stage2 play logs status tensorboard
