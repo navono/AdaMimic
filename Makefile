@@ -9,6 +9,7 @@ LOG_DIR := exp
 
 TASK := badminton_hit
 STAGE := stage1
+
 # Default: show available targets
 #
 # Usage:
@@ -18,18 +19,22 @@ STAGE := stage1
 #   make play TASK=badminton_hit RESUME=exp/g1_dof27/badminton_hit/adamimic_stage2/<timestamp>/model_10000.pt
 #   make logs TASK=badminton_hit
 #   make status TASK=badminton_hit STAGE=stage1
+#   make stage1-record RESUME=exp/g1_dof27/badminton_hit/adamimic_stage1/<timestamp>/model_39999.pt
+#   make stage1-ref-viz TASK=badminton_hit
 #   make tensorboard TASK=badminton_hit
 help:
 	@echo "Usage: make <target> TASK=<task_name>"
 	@echo ""
 	@echo "Targets:"
-	@echo "  stage1        Train stage 1"
+	@echo "  stage1           Train stage 1"
 	@echo "  stage1 RESUME=   Resume stage 1 from checkpoint"
-	@echo "  stage2        Train stage 2 (requires CHECKPOINT=path/to/stage1_ckpt)"
-	@echo "  play          Play a trained policy (requires RESUME=path/to/stage2_ckpt)"
-	@echo "  logs          Tail training logs"
-	@echo "  status        Show training status (STAGE=stage1 or stage2)"
-	@echo "  tensorboard   Launch tensorboard"
+	@echo "  stage2           Train stage 2 (requires CHECKPOINT=path/to/stage1_ckpt)"
+	@echo "  play             Play a trained policy (requires RESUME=path/to/stage2_ckpt)"
+	@echo "  logs             Tail training logs"
+	@echo "  status           Show training status (STAGE=stage1 or stage2)"
+	@echo "  stage1-record    Record stage1 policy video (requires RESUME=)"
+	@echo "  stage1-ref-viz   Visualize stage1 reference motion data"
+	@echo "  tensorboard      Launch tensorboard"
 	@echo ""
 	@echo "Available tasks: $(TASKS)"
 	@echo ""
@@ -40,6 +45,8 @@ help:
 	@echo "  make play TASK=badminton_hit RESUME=exp/g1_dof27/badminton_hit/.../model_10000.pt"
 	@echo "  make logs TASK=badminton_hit"
 	@echo "  make status TASK=badminton_hit STAGE=stage1"
+	@echo "  make stage1-record RESUME=exp/g1_dof27/badminton_hit/adamimic_stage1/.../model_39999.pt"
+	@echo "  make stage1-ref-viz TASK=badminton_hit"
 	@echo "  make tensorboard TASK=badminton_hit"
 
 # Train stage 1
@@ -86,4 +93,22 @@ logs:
 status:
 	$(CONDA_ACTIVATE) && python scripts/check_training.py /home/ubuntu22/sourcecode/exp/$(ROBOT)/$(TASK)/adamimic_$(STAGE) $(STAGE)
 
-.PHONY: help stage1 stage2 play logs status tensorboard
+# Record stage1 policy video
+# Usage: make stage1-record RESUME=exp/g1_dof27/badminton_hit/adamimic_stage1/<timestamp>/model_39999.pt
+# Note: Xvfb must be running (Xvfb :99 -screen 0 1024x768x24 &)
+stage1-record:
+	@echo ">>> Recording stage1: $(TASK)"
+	$(CONDA_ACTIVATE) && $(LD_PATH) DISPLAY=:99 \
+	python scripts/record_video.py +dataset=$(ROBOT)/$(TASK) +algorithm=adamimic/stage1 +robot=$(ROBOT) \
+	resume_path=$(RESUME) headless=false num_envs=4 \
+	hydra.run.dir=. hydra.output_subdir=null hydra.job.chdir=false
+
+# Visualize stage1 reference motion data (joint trajectories + 3D skeleton)
+# Usage: make stage1-ref-viz TASK=badminton_hit
+stage1-ref-viz:
+	@echo ">>> Visualizing reference motion: $(TASK)"
+	$(CONDA_ACTIVATE) && python scripts/visualize_ref_motion.py \
+	legged_gym/resources/dataset/$(ROBOT)_data/$(TASK)/output/data.pt \
+	videos/ref_motion_$(TASK)
+
+.PHONY: help stage1 stage2 play logs status stage1-record stage1-ref-viz tensorboard
