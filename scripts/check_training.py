@@ -37,15 +37,15 @@ stage = sys.argv[2] if len(sys.argv) > 2 else "stage1"
 
 # tag, description, direction, target range (完成时预期值)
 METRICS = {
-    "Train/mean_raw_reward":                       ("平均原始奖励",       "higher", "30~55"),
-    "Train/mean_episode_length":                   ("平均episode长度",   "higher", "50~75"),
-    "Episode/rew_sparse_tracking_body_position":   ("身体位置跟踪",       "higher", "0.5~1.0"),
-    "Episode/rew_sparse_tracking_body_rot":        ("身体旋转跟踪",       "higher", "0.5~1.0"),
-    "Episode/rew_sparse_tracking_trunk_height":    ("躯干高度跟踪",       "higher", "0.8~1.0"),
-    "Episode/joint_pos_diff_norm":                 ("关节位置偏差",       "lower",  "0.1~0.3"),
+    "Train/mean_raw_reward":                       ("平均原始奖励",       "higher", "30~60"),
+    "Train/mean_episode_length":                   ("平均episode长度",   "higher", "78~120"),
+    "Episode/rew_sparse_tracking_body_position":   ("身体位置跟踪",       "higher", "1.2~1.5"),
+    "Episode/rew_sparse_tracking_body_rot":        ("身体旋转跟踪",       "higher", "0.7~0.8"),
+    "Episode/rew_sparse_tracking_trunk_height":    ("躯干高度跟踪",       "higher", "0.7~0.8"),
+    "Episode/joint_pos_diff_norm":                 ("关节位置偏差",       "lower",  "0.8~1.1"),
     "Episode/upper_body_diff_norm":                ("上半身偏差",         "lower",  "0.1~0.3"),
-    "Episode/lower_body_diff_norm":                ("下半身偏差",         "lower",  "0.1~0.3"),
-    "Env/time_outs":                               ("超时比例",           "higher", "0.7~1.0"),
+    "Episode/lower_body_diff_norm":                ("下半身偏差",         "lower",  "0.1~0.2"),
+    "Env/time_outs":                               ("超时比例",           "higher", "0.005~0.02"),
 }
 
 abs_dir = os.path.abspath(exp_dir)

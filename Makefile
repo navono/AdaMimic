@@ -91,7 +91,7 @@ logs:
 # Show training status with reasonable range benchmarks
 # Usage: make status TASK=badminton_hit STAGE=stage1
 status:
-	$(CONDA_ACTIVATE) && python scripts/check_training.py /home/ubuntu22/sourcecode/exp/$(ROBOT)/$(TASK)/adamimic_$(STAGE) $(STAGE)
+	$(CONDA_ACTIVATE) && python scripts/check_training.py $(CURDIR)/$(LOG_DIR)/$(ROBOT)/$(TASK)/adamimic_$(STAGE) $(STAGE)
 
 # Record stage1 policy video
 # Usage: make stage1-record RESUME=exp/g1_dof27/badminton_hit/adamimic_stage1/<timestamp>/model_39999.pt
