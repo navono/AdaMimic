@@ -2,7 +2,7 @@ SHELL := /bin/bash
 CONDA_ENV := adamimic
 CONDA_ACTIVATE := source $$(conda info --base)/etc/profile.d/conda.sh && conda activate $(CONDA_ENV)
 LD_PATH := LD_LIBRARY_PATH=$$CONDA_PREFIX/lib:$$LD_LIBRARY_PATH
-PYTHON := python legged_gym/legged_gym/scripts
+PYTHON := PYTHONUNBUFFERED=1 python legged_gym/legged_gym/scripts
 ROBOT := g1_dof27
 TASKS := badminton_hit tennis_hit high_jump far_jump triple_jump jump_step_up jump_step_down
 LOG_DIR := exp
@@ -82,9 +82,7 @@ tensorboard:
 logs:
 	@LOG=$$(find $(LOG_DIR)/$(ROBOT)/$(TASK) -name train.log -type f -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-) && \
 	if [ -n "$$LOG" ] && [ -s "$$LOG" ]; then \
-		echo ">>> Tailing: $$LOG" && tail -f $$LOG; \
-	elif [ -f train_stage1.log ]; then \
-		echo ">>> Tailing: train_stage1.log (current nohup session)" && tail -f train_stage1.log; \
+		echo ">>> Tailing: $$LOG" && exec tail -f $$LOG; \
 	else \
 		echo "No logs found for $(TASK)"; exit 1; fi
 

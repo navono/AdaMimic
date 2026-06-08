@@ -28,6 +28,7 @@
 #
 # Copyright (c) 2021 ETH Zurich, Nikita Rudin
 
+import os
 import numpy as np
 
 import torch
@@ -421,6 +422,9 @@ class TrackActorCriticDelta(nn.Module):
         self.freeze = freeze
         if resume:
             assert checkpoint_path is not None, "Checkpoint path must be provided for resuming."
+            if not os.path.isabs(checkpoint_path):
+                from hydra.utils import get_original_cwd
+                checkpoint_path = os.path.join(get_original_cwd(), checkpoint_path)
             loaded_dict = torch.load(checkpoint_path, map_location=self.std.device, weights_only=True)['model_state_dict']
             model_state_dict = self.state_dict()
             filtered_state_dict = {k: v for k, v in loaded_dict.items() 

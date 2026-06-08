@@ -12,6 +12,7 @@ dependencies:
   - hydra-core
   - pip
   - wandb
+  - wcwidth
   - pip:
     - git+https://github.com/KellerJordan/Muon
     - pyfqmr

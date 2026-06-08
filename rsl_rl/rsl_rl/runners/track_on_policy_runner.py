@@ -110,6 +110,10 @@ class TrackOnPolicyRunner:
         # Log
         self.log_dir = log_dir
         self.writer = None
+        self.log_file = None
+        if self.log_dir is not None:
+            os.makedirs(self.log_dir, exist_ok=True)
+            self.log_file = open(os.path.join(self.log_dir, 'train.log'), 'a')
         self.tot_timesteps = 0
         self.tot_time = 0
         self.current_learning_iteration = 0
@@ -341,6 +345,9 @@ class TrackOnPolicyRunner:
                                locs['num_learning_iterations'] - locs['it']):.1f}s\n""")
 
         print(log_string)
+        if self.log_file is not None:
+            self.log_file.write(log_string)
+            self.log_file.flush()
 
 
         

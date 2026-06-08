@@ -35,17 +35,38 @@ def pad(text, width, align="<", color=None):
 exp_dir = sys.argv[1] if len(sys.argv) > 1 else "exp/g1_dof27/badminton_hit/adamimic_stage1"
 stage = sys.argv[2] if len(sys.argv) > 2 else "stage1"
 
-# tag, description, direction, target range (完成时预期值)
+# tag, description, direction, target range per stage (完成时预期值)
+# Stage1: 精确跟踪参考动作，无时间扰动
+# Stage2: 引入时间扰动 (±0.015~0.02s)，冻结低层策略，跟踪指标会略低
 METRICS = {
-    "Train/mean_raw_reward":                       ("平均原始奖励",       "higher", "30~60"),
-    "Train/mean_episode_length":                   ("平均episode长度",   "higher", "78~120"),
-    "Episode/rew_sparse_tracking_body_position":   ("身体位置跟踪",       "higher", "1.2~1.5"),
-    "Episode/rew_sparse_tracking_body_rot":        ("身体旋转跟踪",       "higher", "0.7~0.8"),
-    "Episode/rew_sparse_tracking_trunk_height":    ("躯干高度跟踪",       "higher", "0.7~0.8"),
-    "Episode/joint_pos_diff_norm":                 ("关节位置偏差",       "lower",  "0.8~1.1"),
-    "Episode/upper_body_diff_norm":                ("上半身偏差",         "lower",  "0.1~0.3"),
-    "Episode/lower_body_diff_norm":                ("下半身偏差",         "lower",  "0.1~0.2"),
-    "Env/time_outs":                               ("超时比例",           "higher", "0.005~0.02"),
+    "stage1": {
+        "Train/mean_raw_reward":                       ("平均原始奖励",       "higher", "30~60"),
+        "Train/mean_episode_length":                   ("平均episode长度",   "higher", "78~120"),
+        "Episode/rew_sparse_tracking_body_position":   ("身体位置跟踪",       "higher", "1.2~1.5"),
+        "Episode/rew_sparse_tracking_body_rot":        ("身体旋转跟踪",       "higher", "0.7~0.8"),
+        "Episode/rew_sparse_tracking_trunk_height":    ("躯干高度跟踪",       "higher", "0.7~0.8"),
+        "Episode/joint_pos_diff_norm":                 ("关节位置偏差",       "lower",  "0.8~1.1"),
+        "Episode/upper_body_diff_norm":                ("上半身偏差",         "lower",  "0.1~0.3"),
+        "Episode/lower_body_diff_norm":                ("下半身偏差",         "lower",  "0.1~0.2"),
+        "Env/time_outs":                               ("超时比例",           "higher", "0.005~0.02"),
+    },
+    "stage2": {
+        "Train/mean_raw_reward":                       ("平均原始奖励",       "higher", "20~50"),
+        "Train/mean_raw_reward_high":                  ("高层策略奖励",       "higher", "20~50"),
+        "Train/mean_episode_length":                   ("平均episode长度",   "higher", "60~100"),
+        "Episode/rew_sparse_tracking_body_position":   ("身体位置跟踪",       "higher", "1.0~1.4"),
+        "Episode/rew_sparse_tracking_body_position_feet": ("脚部位置跟踪",   "higher", "1.5~2.5"),
+        "Episode/rew_sparse_tracking_body_rot":        ("身体旋转跟踪",       "higher", "0.5~0.8"),
+        "Episode/rew_sparse_tracking_trunk_height":    ("躯干高度跟踪",       "higher", "0.5~0.8"),
+        "Episode/rew_dense_tracking_dof_pos":          ("关节角度跟踪",       "higher", "0.1~0.3"),
+        "Episode/rew_dense_tracking_body_position_local": ("局部位置跟踪",   "higher", "0.1~0.3"),
+        "Episode/joint_pos_diff_norm":                 ("关节位置偏差",       "lower",  "0.8~1.2"),
+        "Episode/upper_body_diff_norm":                ("上半身偏差",         "lower",  "0.1~0.3"),
+        "Episode/lower_body_diff_norm":                ("下半身偏差",         "lower",  "0.1~0.25"),
+        "Env/delta_time":                              ("时间调整量",         "zero",   "-0.005~0.005"),
+        "Env/motion_time":                             ("动作维持时长",       "higher", "2.0~4.0"),
+        "Env/time_outs":                               ("超时比例",           "higher", "0.005~0.03"),
+    },
 }
 
 abs_dir = os.path.abspath(exp_dir)
@@ -99,7 +120,9 @@ header = (
 print(header)
 print("-" * wcswidth(header))
 
-for tag, (desc, direction, target_range) in METRICS.items():
+stage_metrics = METRICS.get(stage, METRICS["stage1"])
+
+for tag, (desc, direction, target_range) in stage_metrics.items():
     try:
         events = ea.Scalars(tag)
         val = events[-1].value
@@ -116,6 +139,18 @@ for tag, (desc, direction, target_range) in METRICS.items():
                 status, color = "进展中", YELLOW
             else:
                 status, color = "LOW", RED
+        elif direction == "zero":
+            # 值应在 range 中心(0) 附近波动
+            lo, hi = float(target_range.split("~")[0]), float(target_range.split("~")[1])
+            arrow = "→"
+            if lo <= val <= hi:
+                status, color = "OK", GREEN
+            else:
+                deviation = max(abs(val - lo), abs(val - hi))
+                if deviation < abs(hi) * 2:
+                    status, color = "进展中", YELLOW
+                else:
+                    status, color = "HIGH", RED
         else:
             arrow = "↓" if diff < 0 else "↑"
             hi = float(target_range.split("~")[1])
