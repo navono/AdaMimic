@@ -370,7 +370,7 @@ class TrackAMPOnPolicyRunner:
     def save(self, path, infos=None):
         torch.save({
             'model_state_dict': self.alg.actor_critic.state_dict(),
-            # 'optimizer_state_dict': self.alg.optimizer.state_dict(),
+            'optimizer_state_dict': self.alg.optimizer.state_dict(),
             # 'estimator_optimizer_state_dict': self.alg.actor_critic.estimator.optimizer.state_dict(),
             'iter': self.current_learning_iteration + 1,
             'infos': infos,
@@ -401,12 +401,14 @@ class TrackAMPOnPolicyRunner:
     def load(self, path, load_optimizer=True):
         loaded_dict = torch.load(path, map_location=self.device)
         self.load_weights_without_actor_time(self.alg.actor_critic, loaded_dict['model_state_dict'])
-        # self.alg.actor_critic.load_state_dict(loaded_dict['model_state_dict'])
-        # if load_optimizer:
-            # self.alg.optimizer.load_state_dict(loaded_dict['optimizer_state_dict'])
-            # self.alg.actor_critic.estimator.optimizer.load_state_dict(loaded_dict['estimator_optimizer_state_dict'])
-        # self.current_learning_iteration = loaded_dict['iter']
-        return loaded_dict['infos']
+        if load_optimizer and 'optimizer_state_dict' in loaded_dict:
+            try:
+                self.alg.optimizer.load_state_dict(loaded_dict['optimizer_state_dict'])
+            except (ValueError, KeyError) as e:
+                print(f"[resume] skip optimizer state load: {e}")
+        if 'iter' in loaded_dict:
+            self.current_learning_iteration = loaded_dict['iter']
+        return loaded_dict.get('infos', None)
 
     def get_inference_policy(self, device=None):
         self.alg.actor_critic.eval() # switch to evaluation mode (dropout for example)

@@ -10,6 +10,9 @@ LOG_DIR := exp
 TASK := badminton_hit
 STAGE := stage1
 
+CHECKPOINT := exp/g1_dof27/badminton_hit/adamimic_stage1/20260604_150251_g1_dof27_badminton_hit_adamimic_stage1_test/model_39999.pt
+
+
 # Default: show available targets
 #
 # Usage:
@@ -56,14 +59,16 @@ stage1:
 	@echo ">>> Training stage 1: $(TASK)"
 	$(CONDA_ACTIVATE) && $(LD_PATH) \
 	$(PYTHON)/train.py +dataset=$(ROBOT)/$(TASK) +algorithm=adamimic/stage1 +robot=$(ROBOT) \
-	$(if $(RESUME),resume_path=$(RESUME) algo.runner.resume=true,)
+	$(if $(RESUME),+resume_path=$(abspath $(RESUME)),)
 
 # Train stage 2 (depends on stage1 checkpoint)
 # Usage: make stage2 TASK=badminton_hit CHECKPOINT=exp/g1_dof27/badminton_hit/adamimic_stage1/<timestamp>/model_40000.pt
+# Resume: make stage2 TASK=badminton_hit CHECKPOINT=<stage1_ckpt> RESUME=exp/.../model_<iter>.pt
 stage2:
 	@echo ">>> Training stage 2: $(TASK)"
 	$(CONDA_ACTIVATE) && $(LD_PATH) \
-	$(PYTHON)/train.py +dataset=$(ROBOT)/$(TASK) +algorithm=adamimic/stage2 +robot=$(ROBOT) checkpoint_path=$(CHECKPOINT)
+	$(PYTHON)/train.py +dataset=$(ROBOT)/$(TASK) +algorithm=adamimic/stage2 +robot=$(ROBOT) checkpoint_path=$(abspath $(CHECKPOINT)) \
+	$(if $(RESUME),+resume_path=$(abspath $(RESUME)),)
 
 # Play a trained policy (requires stage2 checkpoint)
 # Usage: make play TASK=badminton_hit RESUME=exp/g1_dof27/badminton_hit/adamimic_stage2/<timestamp>/model_10000.pt

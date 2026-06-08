@@ -84,17 +84,13 @@ class TaskRegistry():
         log_dir = cfgs.run_dir
         if train_cfg.runner_class_name == "TrackOnPolicyRunner":
             runner = TrackOnPolicyRunner(env, env_cfg, train_cfg, log_dir, device=cfgs.rl_device)
-            resume = train_cfg.runner.resume
         elif train_cfg.runner_class_name == "HierachicalTrackOnPolicyRunner":
             runner = HierachicalTrackOnPolicyRunner(env, env_cfg, train_cfg, log_dir, device=cfgs.rl_device)
-            resume = train_cfg.runner.resume
         elif train_cfg.runner_class_name == "TrackAMPOnPolicyRunner":
             runner = TrackAMPOnPolicyRunner(env, env_cfg, train_cfg, log_dir, device=cfgs.rl_device)
-            resume = train_cfg.runner.resume
-        resume = train_cfg.runner.resume
-        if resume:
-            resume_path = cfgs.resume_path
-            print(f"Loading model from: {resume_path}")
+        resume_path = cfgs.get("resume_path", None)
+        if resume_path:
+            print(f"Resuming from: {resume_path}")
             runner.load(resume_path)
         return runner, train_cfg
 
